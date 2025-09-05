@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator ojol</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 15px;
+      color: #333;
+    }
+    .container {
+      background-color: #fff;
+      width: 100%;
+      max-width: 500px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+    h2 {text-align:center;margin-bottom:20px;font-size:1.6rem;}
+    label {display:block;font-weight:600;font-size:0.95rem;margin-top:15px;}
+    input {
+      width: 100%;padding: 10px 12px;margin-top: 6px;border: 1px solid #ccc;border-radius: 6px;font-size: 1rem;
+    }
+    .btn {display:block;width:100%;margin-top:20px;padding:12px;background:#28a745;color:#fff;font-weight:600;border:none;border-radius:6px;cursor:pointer;}
+    .btn:hover {background:#218838;}
+    .small-btn {background:#007bff;margin-top:10px;font-size:0.9rem;padding:8px;width:auto;display:inline-block;color:#fff;border:none;border-radius:6px;cursor:pointer;}
+    .small-btn:hover {background:#0069d9;}
+    .hapus-btn {background:#dc3545;color:#fff;border:none;border-radius:4px;padding:6px 10px;margin-left:5px;cursor:pointer;font-size:0.85rem;}
+    .hapus-btn:hover {background:#b02a37;}
+    .group {margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;}
+    .group input {flex:1 1 45%;}
+    table {width:100%;border-collapse:collapse;margin-top:10px;}
+    th, td {border:1px solid #ccc;padding:8px 10px;text-align:left;font-size:0.95rem;}
+    th {background:#f0f0f0;font-weight:600;}
+    #resetBtn {
+      background:#6c757d;
+      margin-top:10px;
+      display:none; /* tersembunyi awal */
+    }
+    #resetBtn:hover {
+      background:#5a6268;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Kalkulator ojol</h2>
+
+    <div id="pemasukan-container">
+      <label>Pemasukan:</label>
+      <div class="group">
+        <input type="text" class="ketPemasukan" placeholder="Keterangan (misal: Gaji)">
+        <input type="text" class="valPemasukan" placeholder="Jumlah (Rp)" oninput="formatRupiahInput(this)">
+        <button type="button" class="hapus-btn" onclick="hapusBaris(this,'pemasukan')">Hapus</button>
+      </div>
+    </div>
+    <button type="button" class="small-btn" onclick="tambahPemasukan()">+ Tambah Pemasukan</button>
+
+    <div id="pengeluaran-container">
+      <label>Pengeluaran:</label>
+      <div class="group">
+        <input type="text" class="ketPengeluaran" placeholder="Keterangan (misal: Makanan)">
+        <input type="text" class="valPengeluaran" placeholder="Jumlah (Rp)" oninput="formatRupiahInput(this)">
+        <button type="button" class="hapus-btn" onclick="hapusBaris(this,'pengeluaran')">Hapus</button>
+      </div>
+    </div>
+    <button type="button" class="small-btn" onclick="tambahPengeluaran()">+ Tambah Pengeluaran</button>
+
+    <button class="btn" onclick="hitung()">Hitung Bersih</button>
+
+    <div class="result" id="hasil"></div>
+    <button class="btn" id="resetBtn" onclick="resetForm()">Bersihkan Semua</button>
+  </div>
+
+  <script>
+    let pemasukanCount = 1;
+    const maxPemasukan = 5;
+    let pengeluaranCount = 1;
+    const maxPengeluaran = 20;
+
+    function formatRupiahInput(el) {
+      let number_string = el.value.replace(/[^,\d]/g, "").toString();
+      let split = number_string.split(",");
+      let sisa = split[0].length % 3;
+      let rupiah = split[0].substr(0, sisa);
+      let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+      if (ribuan) {
+        let separator = sisa ? "." : "";
+        rupiah += separator + ribuan.join(".");
+      }
+      rupiah = split[1] !== undefined ? rupiah + "," + split[1] : rupiah;
+
+      el.value = rupiah;
+      el.dataset.value = number_string;
+    }
+
+    function tambahPemasukan() {
+      if (pemasukanCount >= maxPemasukan) {
+        alert('Maksimal 3 input pemasukan');
+        return;
+      }
+      pemasukanCount++;
+      const container = document.getElementById('pemasukan-container');
+      const group = document.createElement('div');
+      group.className = 'group';
+      group.innerHTML = `
+        <input type="text" class="ketPemasukan" placeholder="Keterangan (misal: Tip)">
+        <input type="text" class="valPemasukan" placeholder="Jumlah (Rp)" oninput="formatRupiahInput(this)">
+        <button type="button" class="hapus-btn" onclick="hapusBaris(this,'pemasukan')">Hapus</button>
+      `;
+      container.appendChild(group);
+    }
+
+    function tambahPengeluaran() {
+      if (pengeluaranCount >= maxPengeluaran) {
+        alert('Maksimal 5 input pengeluaran');
+        return;
+      }
+      pengeluaranCount++;
+      const container = document.getElementById('pengeluaran-container');
+      const group = document.createElement('div');
+      group.className = 'group';
+      group.innerHTML = `
+        <input type="text" class="ketPengeluaran" placeholder="Keterangan (misal: Transportasi)">
+        <input type="text" class="valPengeluaran" placeholder="Jumlah (Rp)" oninput="formatRupiahInput(this)">
+        <button type="button" class="hapus-btn" onclick="hapusBaris(this,'pengeluaran')">Hapus</button>
+      `;
+      container.appendChild(group);
+    }
+
+    function hapusBaris(btn, type) {
+      btn.parentElement.remove();
+      if (type === 'pemasukan' && pemasukanCount > 1) pemasukanCount--;
+      if (type === 'pengeluaran' && pengeluaranCount > 1) pengeluaranCount--;
+    }
+
+    function hitung() {
+      const ketPemasukan = document.getElementsByClassName('ketPemasukan');
+      const valPemasukan = document.getElementsByClassName('valPemasukan');
+      let totalPemasukan = 0;
+      let pemasukanRows = '';
+
+      for (let i = 0; i < valPemasukan.length; i++) {
+        const ket = ketPemasukan[i].value || 'Pemasukan ' + (i + 1);
+        const rawVal = valPemasukan[i].dataset.value || valPemasukan[i].value.replace(/\./g,'');
+        const val = parseFloat(rawVal) || 0;
+        totalPemasukan += val;
+        pemasukanRows += `<tr><td>${ket}</td><td>Rp ${val.toLocaleString('id-ID')}</td></tr>`;
+      }
+
+      const ketPengeluaran = document.getElementsByClassName('ketPengeluaran');
+      const valPengeluaran = document.getElementsByClassName('valPengeluaran');
+      let totalPengeluaran = 0;
+      let pengeluaranRows = '';
+
+      for (let i = 0; i < valPengeluaran.length; i++) {
+        const ket = ketPengeluaran[i].value || 'Pengeluaran ' + (i + 1);
+        const rawVal = valPengeluaran[i].dataset.value || valPengeluaran[i].value.replace(/\./g,'');
+        const val = parseFloat(rawVal) || 0;
+        totalPengeluaran += val;
+        pengeluaranRows += `<tr><td>${ket}</td><td>Rp ${val.toLocaleString('id-ID')}</td></tr>`;
+      }
+
+      const bersih = totalPemasukan - totalPengeluaran;
+
+      let table = `
+        <table>
+          <tr><th>Komponen</th><th>Nilai</th></tr>
+          ${pemasukanRows}
+          <tr><td><strong>Total Pemasukan</strong></td><td><strong>Rp ${totalPemasukan.toLocaleString('id-ID')}</strong></td></tr>
+          ${pengeluaranRows}
+          <tr><td><strong>Total Pengeluaran</strong></td><td><strong>Rp ${totalPengeluaran.toLocaleString('id-ID')}</strong></td></tr>
+          <tr><td><strong>Total Bersih</strong></td><td><strong>Rp ${bersih.toLocaleString('id-ID')}</strong></td></tr>
+        </table>
+      `;
+      document.getElementById('hasil').innerHTML = table;
+      document.getElementById('resetBtn').style.display = 'block'; // tampilkan tombol bersihkan
+    }
+
+    function resetForm() {
+      pemasukanCount = 1;
+      pengeluaranCount = 1;
+
+      document.getElementById('pemasukan-container').innerHTML = `
+        <label>Pemasukan:</label>
+        <div class="group">
+          <input type="text" class="ketPemasukan" placeholder="Keterangan (misal: Gaji)">
+          <input type="text" class="valPemasukan" placeholder="Jumlah (Rp)" oninput="formatRupiahInput(this)">
+          <button type="button" class="hapus-btn" onclick="hapusBaris(this,'pemasukan')">Hapus</button>
+        </div>
+      `;
+      document.getElementById('pengeluaran-container').innerHTML = `
+        <label>Pengeluaran:</label>
+        <div class="group">
+          <input type="text" class="ketPengeluaran" placeholder="Keterangan (misal: Makanan)">
+          <input type="text" class="valPengeluaran" placeholder="Jumlah (Rp)" oninput="formatRupiahInput(this)">
+          <button type="button" class="hapus-btn" onclick="hapusBaris(this,'pengeluaran')">Hapus</button>
+        </div>
+      `;
+
+      document.getElementById('hasil').innerHTML = '';
+      document.getElementById('resetBtn').style.display = 'none'; // sembunyikan tombol bersihkan
+    }
+  </script>
+</body>
+</html>
